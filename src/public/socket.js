@@ -1,43 +1,40 @@
 const socket = io();
 
-const form = document.getElementById("productForm");
-const productList = document.getElementById("productList");
+// Render inicial de productos
+socket.on("actualizarProductos", (products) => {
+  const contenedor = document.getElementById("productList");
+  contenedor.innerHTML = "";
 
-// Crear producto
+  products.forEach((prod) => {
+    const col = document.createElement("div");
+    col.classList.add("col-md-4", "mb-3");
+    col.setAttribute("data-id", prod.id);
+
+    col.innerHTML = `
+      <div class="card h-100">
+        <img src="/imagenes/${prod.thumbnail}" class="card-img-top" alt="${prod.title}" />
+        <div class="card-body text-dark">
+          <h5 class="card-title">${prod.title}</h5>
+          <p class="card-text">$${prod.price}</p>
+          <button class="btn btn-danger btn-sm deleteBtn">Eliminar</button>
+        </div>
+      </div>
+    `;
+
+    contenedor.appendChild(col);
+  });
+});
+
+// Manejo del formulario para agregar productos
+const form = document.getElementById("productForm");
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  const data = {
-    title: form.title.value,
-    description: form.description.value,
-    code: form.code.value,
-    price: Number(form.price.value),
-    status: true,
-    stock: Number(form.stock.value),
-    category: form.category.value,
-    thumbnails: [form.thumbnails.value],
-  };
-  socket.emit("newProduct", data);
+
+  const formData = new FormData(form);
+  const nuevoProducto = Object.fromEntries(formData.entries());
+
+  // Emitimos al servidor el nuevo producto
+  socket.emit("nuevoProducto", nuevoProducto);
+
   form.reset();
-});
-
-// Eliminar producto
-productList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("deleteBtn")) {
-    const li = e.target.closest("li");
-    const id = li.getAttribute("data-id");
-    socket.emit("deleteProduct", Number(id));
-  }
-});
-
-// Actualizar lista en tiempo real
-socket.on("productAdded", (product) => {
-  const li = document.createElement("li");
-  li.setAttribute("data-id", product.id);
-  li.innerHTML = `${product.title} - $${product.price} <button class="deleteBtn">Eliminar</button>`;
-  productList.appendChild(li);
-});
-
-socket.on("productDeleted", (id) => {
-  const li = productList.querySelector(`li[data-id="${id}"]`);
-  if (li) li.remove();
 });

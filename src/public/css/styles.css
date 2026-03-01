@@ -1,0 +1,117 @@
+/* General */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  color: #212529;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000; /* negro institucional */
+  padding: 10px 20px;
+}
+
+header .logo {
+  height: 50px;
+}
+
+header nav a {
+  color: #fff;
+  margin-left: 15px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+header nav a:hover {
+  color: #00ced1; /* turquesa institucional */
+}
+
+/* Grid unificado para home y realtime */
+.productos,
+#productList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-img-top {
+  width: 100%;
+  height: 160px; /* tamaño fijo */
+  object-fit: contain; /* mantiene proporciones */
+  background-color: #fff;
+  padding: 8px;
+}
+
+.card-body {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card-text {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* Botones */
+.btn-primary {
+  background-color: #6a0dad; /* violeta institucional */
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #00ced1; /* turquesa institucional */
+}
+
+.btn-danger {
+  background-color: #e63946;
+  border: none;
+}
+
+.btn-danger:hover {
+  background-color: #c1121f;
+}
+
+/* Formulario */
+form .form-control {
+  margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+  background-color: #f1f1f1;
+  color: #555;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 10px;
+}

@@ -59,9 +59,9 @@
     <div class="col-md-6">
       <input
         type="text"
-        name="thumbnails"
+        name="thumbnail"
         class="form-control"
-        placeholder="Imagen (ruta, ej: /imagenes/jackdaniels.png)"
+        placeholder="Imagen (ej: patagonia.png)"
         required
       />
     </div>
@@ -71,20 +71,18 @@
   </div>
 </form>
 
-<div id="productList" class="row">
+<div id="productList" class="productos">
   {{#each products}}
-    <div class="col-md-4 mb-3" data-id="{{this.id}}">
-      <div class="card h-100">
-        <img
-          src="{{this.thumbnails.[0]}}"
-          class="card-img-top"
-          alt="{{this.title}}"
-        />
-        <div class="card-body text-dark">
-          <h5 class="card-title">{{this.title}}</h5>
-          <p class="card-text">${{this.price}}</p>
-          <button class="btn btn-danger btn-sm deleteBtn">Eliminar</button>
-        </div>
+    <div class="card h-100">
+      <img
+        src="/imagenes/{{this.thumbnail}}"
+        class="card-img-top"
+        alt="{{this.title}}"
+      />
+      <div class="card-body text-dark">
+        <h5 class="card-title">{{this.title}}</h5>
+        <p class="card-text">${{this.price}}</p>
+        <button class="btn btn-danger btn-sm deleteBtn">Eliminar</button>
       </div>
     </div>
   {{/each}}
