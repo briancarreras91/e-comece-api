@@ -31,5 +31,16 @@
     "stock": 60,
     "category": "Gin",
     "thumbnail": "tanqueray.png"
+  },
+  {
+    "id": 4,
+    "title": "Vodka Absolute",
+    "description": "Vodka sabor original",
+    "code": "vod885",
+    "price": 18000,
+    "status": true,
+    "stock": 50,
+    "category": "Vodka",
+    "thumbnail": "absolute.png"
   }
 ]

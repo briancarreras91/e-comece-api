@@ -1,6 +1,6 @@
 <h1 class="mb-4">Productos en tiempo real</h1>
 
-<form id="productForm" class="mb-4">
+<form id="productForm" class="mb-4" enctype="multipart/form-data">
   <div class="row g-2">
     <div class="col-md-4">
       <input
@@ -57,13 +57,7 @@
       />
     </div>
     <div class="col-md-6">
-      <input
-        type="text"
-        name="thumbnail"
-        class="form-control"
-        placeholder="Imagen (ej: patagonia.png)"
-        required
-      />
+      <input type="file" name="thumbnail" class="form-control" required />
     </div>
     <div class="col-md-6">
       <button type="submit" class="btn btn-primary w-100">Agregar producto</button>
@@ -82,7 +76,10 @@
       <div class="card-body text-dark">
         <h5 class="card-title">{{this.title}}</h5>
         <p class="card-text">${{this.price}}</p>
-        <button class="btn btn-danger btn-sm deleteBtn">Eliminar</button>
+        <button
+          class="btn btn-danger btn-sm deleteBtn"
+          data-id="{{this.id}}"
+        >Eliminar</button>
       </div>
     </div>
   {{/each}}

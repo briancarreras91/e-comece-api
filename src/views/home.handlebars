@@ -1,11 +1,18 @@
-<h1>Catálogo de productos</h1>
+<h1 class="mb-4">Catálogo de productos</h1>
+
 <div class="productos">
   {{#each products}}
-    <div class="card">
-      <h2>{{this.title}}</h2>
-      <img src="/imagenes/{{this.thumbnail}}" alt="{{this.title}}" />
-      <p>{{this.description}}</p>
-      <p>Precio: ${{this.price}}</p>
+    <div class="card h-100">
+      <img
+        src="/imagenes/{{this.thumbnail}}"
+        class="card-img-top"
+        alt="{{this.title}}"
+      />
+      <div class="card-body text-dark">
+        <h5 class="card-title">{{this.title}}</h5>
+        <p class="card-text">${{this.price}}</p>
+        <p class="card-text">{{this.description}}</p>
+      </div>
     </div>
   {{/each}}
 </div>

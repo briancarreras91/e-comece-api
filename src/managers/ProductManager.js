@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const Product = require("../models/Product");
 
 class ProductManager {
   constructor() {
@@ -35,6 +34,21 @@ class ProductManager {
       return newProduct;
     } catch (error) {
       console.error("Error agregando producto:", error);
+      return null;
+    }
+  }
+
+  updateProduct(id, updatedFields) {
+    try {
+      const products = this.getProducts();
+      const index = products.findIndex((p) => p.id === id);
+      if (index === -1) return null;
+
+      products[index] = { ...products[index], ...updatedFields };
+      fs.writeFileSync(this.filePath, JSON.stringify(products, null, 2));
+      return products[index];
+    } catch (error) {
+      console.error("Error actualizando producto:", error);
       return null;
     }
   }
