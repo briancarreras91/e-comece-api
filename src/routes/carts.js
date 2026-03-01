@@ -1,33 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const CartManager = require("../managers/CartManager");
+const ProductManager = require("../managers/ProductManager");
 const cartManager = new CartManager();
+const productManager = new ProductManager();
 
-// crea un nuevo carrito
-router.post("/", (req, res) => {
-  const newCart = cartManager.createCart();
-  res.status(201).json(newCart);
-});
+// POST /api/carts/:cid/product/:pid
+router.post("/:cid/product/:pid", (req, res) => {
+  const { cid, pid } = req.params;
+  const product = productManager.getProductById(Number(pid));
 
-// devuelve productos de un carrito
-router.get("/:cid", (req, res) => {
-  const cid = parseInt(req.params.cid);
-  const cart = cartManager.getCartById(cid);
-
-  if (!cart) {
-    return res.status(404).json({ error: "Carrito no encontrado" });
+  if (!product) {
+    return res.status(404).json({ error: "Producto no encontrado" });
   }
 
-  res.json(cart.products);
-});
-
-// agrega producto al carrito
-router.post("/:cid/product/:pid", (req, res) => {
-  const cid = parseInt(req.params.cid);
-  const pid = parseInt(req.params.pid);
-
-  const updatedCart = cartManager.addProductToCart(cid, pid);
-
+  const updatedCart = cartManager.addProductToCart(Number(cid), Number(pid));
   if (!updatedCart) {
     return res.status(404).json({ error: "Carrito no encontrado" });
   }

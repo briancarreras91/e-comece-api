@@ -2,52 +2,55 @@ const express = require("express");
 const router = express.Router();
 const ProductManager = require("../managers/ProductManager");
 const productManager = new ProductManager();
+const { io } = require("../../app"); // si exportás io desde app.js
 
-// listar todos los productos
-router.get("/", (req, res) => {
-  const products = productManager.getProducts();
-  res.json({ products });
-});
+// POST /api/products
+router.post("/", (req, res) => {
+  const {
+    title,
+    description,
+    code,
+    price,
+    status,
+    stock,
+    category,
+    thumbnails,
+  } = req.body;
 
-// traer producto por id
-router.get("/:pid", (req, res) => {
-  const pid = parseInt(req.params.pid);
-  const product = productManager.getProductById(pid);
-
-  if (!product) {
-    return res.status(404).json({ error: "Producto no encontrado" });
+  if (
+    !title ||
+    !description ||
+    !code ||
+    !price ||
+    status === undefined ||
+    !stock ||
+    !category ||
+    !thumbnails
+  ) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
   }
 
-  res.json(product);
-});
+  if (
+    typeof price !== "number" ||
+    typeof status !== "boolean" ||
+    typeof stock !== "number" ||
+    !Array.isArray(thumbnails)
+  ) {
+    return res.status(400).json({ error: "Tipos de datos inválidos" });
+  }
 
-// agregar producto nuevo
-router.post("/", (req, res) => {
   const newProduct = productManager.addProduct(req.body);
+  if (io) io.emit("productAdded", newProduct);
   res.status(201).json(newProduct);
 });
 
-// actualizar producto
-router.put("/:pid", (req, res) => {
-  const pid = parseInt(req.params.pid);
-  const updatedProduct = productManager.updateProduct(pid, req.body);
-
-  if (!updatedProduct) {
-    return res.status(404).json({ error: "Producto no encontrado" });
-  }
-
-  res.json(updatedProduct);
-});
-
-// eliminar producto
+// DELETE /api/products/:pid
 router.delete("/:pid", (req, res) => {
-  const pid = parseInt(req.params.pid);
-  const deleted = productManager.deleteProduct(pid);
-
-  if (!deleted) {
+  const id = Number(req.params.pid);
+  const deleted = productManager.deleteProduct(id);
+  if (!deleted)
     return res.status(404).json({ error: "Producto no encontrado" });
-  }
-
+  if (io) io.emit("productDeleted", id);
   res.json({ message: "Producto eliminado correctamente" });
 });
 
