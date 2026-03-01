@@ -1,5 +1,6 @@
 [
   {
+    "id": 1,
     "title": "Cerveza Patagonia Amber Lager",
     "description": "Cerveza artesanal argentina estilo Amber Lager",
     "code": "CP001",
@@ -7,12 +8,10 @@
     "status": true,
     "stock": 120,
     "category": "Cervezas",
-    "thumbnails": [
-      "src/assets/imagenes/cerveza-patagonia.png"
-    ],
-    "id": 1
+    "thumbnail": "patagonia.png"
   },
   {
+    "id": 2,
     "title": "Whisky Jack Daniels Old No. 7",
     "description": "Whisky americano Tennessee, clásico Old No. 7",
     "code": "JD001",
@@ -20,12 +19,10 @@
     "status": true,
     "stock": 35,
     "category": "Whiskies",
-    "thumbnails": [
-      "src/assets/imagenes/jack-daniels.png"
-    ],
-    "id": 2
+    "thumbnail": "jackdaniels.png"
   },
   {
+    "id": 3,
     "title": "Gin Tanqueray London Dry",
     "description": "Gin inglés London Dry, ideal para cócteles",
     "code": "GT001",
@@ -33,9 +30,6 @@
     "status": true,
     "stock": 60,
     "category": "Gin",
-    "thumbnails": [
-      "src/assets/imagenes/tanqueray.png"
-    ],
-    "id": 3
+    "thumbnail": "tanqueray.png"
   }
 ]

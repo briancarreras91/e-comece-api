@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const ProductManager = require("../managers/ProductManager");
 const productManager = new ProductManager();
-const { io } = require("../../app"); // si exportás io desde app.js
 
 // POST /api/products
 router.post("/", (req, res) => {
@@ -40,7 +39,6 @@ router.post("/", (req, res) => {
   }
 
   const newProduct = productManager.addProduct(req.body);
-  if (io) io.emit("productAdded", newProduct);
   res.status(201).json(newProduct);
 });
 
@@ -50,7 +48,6 @@ router.delete("/:pid", (req, res) => {
   const deleted = productManager.deleteProduct(id);
   if (!deleted)
     return res.status(404).json({ error: "Producto no encontrado" });
-  if (io) io.emit("productDeleted", id);
   res.json({ message: "Producto eliminado correctamente" });
 });
 

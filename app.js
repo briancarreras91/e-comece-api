@@ -1,63 +1,49 @@
-const express = require("express");
-const exphbs = require("express-handlebars");
-const path = require("path");
-const http = require("http");
-const { Server } = require("socket.io");
+import express from "express";
+import handlebars from "express-handlebars";
+import { Server } from "socket.io";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import productsRouter from "./src/routes/products.js";
+import cartsRouter from "./src/routes/carts.js";
+import viewsRouter from "./src/routes/views.router.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = 8080;
+const PORT = 8888;
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "src/public")));
+
+// Carpeta pública
+app.use(express.static(join(__dirname, "src/public")));
+
+// Carpeta de imágenes expuesta
+app.use("/imagenes", express.static(join(__dirname, "src/assets/imagenes")));
 
 // Handlebars
-app.engine("handlebars", exphbs.engine());
+app.engine("handlebars", handlebars.engine());
+app.set("views", join(__dirname, "src/views"));
 app.set("view engine", "handlebars");
-app.set("views", path.join(__dirname, "src/views"));
 
-// Routers
-const productsRouter = require("./src/routes/products");
-const cartsRouter = require("./src/routes/carts");
-
+// Rutas
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
+app.use("/", viewsRouter);
 
-// Vistas
-app.get("/", (req, res) => {
-  const ProductManager = require("./src/managers/ProductManager");
-  const productManager = new ProductManager();
-  const products = productManager.getProducts();
-  res.render("home", { products });
-});
-
-app.get("/realtimeproducts", (req, res) => {
-  res.render("realTimeProducts");
+// Servidor
+const server = app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
 // Socket.io
-const server = http.createServer(app);
 const io = new Server(server);
 
 io.on("connection", (socket) => {
   console.log("Cliente conectado");
-
-  socket.on("newProduct", (data) => {
-    const ProductManager = require("./src/managers/ProductManager");
-    const productManager = new ProductManager();
-    const product = productManager.addProduct(data);
-    io.emit("productAdded", product);
+  socket.on("nuevoProducto", (data) => {
+    io.emit("actualizarProductos", data);
   });
-
-  socket.on("deleteProduct", (id) => {
-    const ProductManager = require("./src/managers/ProductManager");
-    const productManager = new ProductManager();
-    const deleted = productManager.deleteProduct(id);
-    io.emit("productDeleted", deleted);
-  });
-});
-
-server.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
