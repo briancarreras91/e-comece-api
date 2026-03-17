@@ -1,13 +1,19 @@
+require("dotenv").config(); // carga variables de entorno
+
+const connectMongo = require("./src/config/mongo");
 const express = require("express");
 const { Server } = require("socket.io");
 const handlebars = require("express-handlebars");
 const path = require("path");
-const ProductManager = require("./src/managers/ProductManager");
+
 const productsRouter = require("./src/routes/products.router");
+const cartsRouter = require("./src/routes/carts.router");
 
 const app = express();
-const PORT = 8080;
-const manager = new ProductManager();
+const PORT = process.env.PORT || 8080;
+
+// Conexión a MongoDB
+connectMongo();
 
 // Middlewares
 app.use(express.json());
@@ -16,18 +22,19 @@ app.use(express.urlencoded({ extended: true }));
 // Carpeta estática para imágenes y assets
 app.use(
   "/imagenes",
-  express.static(path.join(__dirname, "src/assets/imagenes")),
+  express.static(path.join(__dirname, process.env.IMAGES_PATH)),
 );
-app.use("/css", express.static(path.join(__dirname, "src/public/css")));
-app.use("/js", express.static(path.join(__dirname, "src/public/js")));
+app.use("/css", express.static(path.join(__dirname, process.env.CSS_PATH)));
+app.use("/js", express.static(path.join(__dirname, process.env.JS_PATH)));
 
 // Configuración de Handlebars
 app.engine("handlebars", handlebars.engine());
 app.set("views", path.join(__dirname, "src/views"));
 app.set("view engine", "handlebars");
 
-// Router principal
+// Routers principales
 app.use("/", productsRouter);
+app.use("/", cartsRouter);
 
 // Servidor HTTP
 const server = app.listen(PORT, () =>
@@ -40,23 +47,16 @@ const io = new Server(server);
 io.on("connection", async (socket) => {
   console.log("Cliente conectado");
 
-  // Enviar lista inicial
-  socket.emit("actualizarProductos", manager.getProducts());
-
-  // Nuevo producto (ya creado vía REST, solo notificamos)
+  // Eventos de productos en tiempo real
   socket.on("nuevoProducto", async (prod) => {
-    io.emit("actualizarProductos", manager.getProducts());
+    io.emit("productoAgregado", prod);
   });
 
-  // Eliminar producto
   socket.on("eliminarProducto", async (id) => {
-    manager.deleteProduct(parseInt(id));
-    io.emit("actualizarProductos", manager.getProducts());
+    io.emit("productoEliminado", id);
   });
 
-  // Actualizar producto (opcional)
-  socket.on("actualizarProducto", async ({ id, fields }) => {
-    manager.updateProduct(parseInt(id), fields);
-    io.emit("actualizarProductos", manager.getProducts());
+  socket.on("actualizarProducto", async (updated) => {
+    io.emit("productoActualizado", updated);
   });
 });

@@ -1,14 +1,16 @@
-class Product {
-  constructor(title, description, code, price, status, stock, category, thumbnails) {
-    this.title = title;              // String
-    this.description = description;  // String
-    this.code = code;                // String
-    this.price = price;              // Number
-    this.status = status;            // Boolean
-    this.stock = stock;              // Number
-    this.category = category;        // String
-    this.thumbnails = thumbnails;    // Array de Strings
-  }
-}
+const mongoose = require("mongoose");
+
+const productSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  code: { type: String, required: true, unique: true },
+  price: { type: Number, required: true },
+  status: { type: Boolean, default: true },
+  stock: { type: Number, required: true },
+  category: { type: String, required: true },
+  thumbnail: { type: String }, // URL de Cloudinary
+});
+
+const Product = mongoose.model("Product", productSchema);
 
 module.exports = Product;

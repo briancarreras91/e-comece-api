@@ -1,50 +1,59 @@
 const socket = io();
 
-// Renderizar productos en tiempo real
+// Render inicial: recibe toda la lista de productos
 socket.on("actualizarProductos", (products) => {
-  const contenedor = document.getElementById("productList");
-  contenedor.innerHTML = "";
+  renderProducts(products);
+});
 
-  products.forEach((prod) => {
-    const card = document.createElement("div");
-    card.classList.add("card", "h-100");
+// Producto agregado: recibe solo el objeto nuevo
+socket.on("productoAgregado", (product) => {
+  addProductCard(product);
+});
+
+// Producto eliminado: recibe solo el ID
+socket.on("productoEliminado", (id) => {
+  removeProductCard(id);
+});
+
+// Producto actualizado: recibe solo el objeto modificado
+socket.on("productoActualizado", (product) => {
+  updateProductCard(product);
+});
+
+// Funciones auxiliares para manipular el DOM
+function renderProducts(products) {
+  const container = document.getElementById("productsContainer");
+  container.innerHTML = "";
+  products.forEach(addProductCard);
+}
+
+function addProductCard(product) {
+  const container = document.getElementById("productsContainer");
+  const card = document.createElement("div");
+  card.id = `product-${product.id}`;
+  card.className = "product-card";
+  card.innerHTML = `
+    <h3>${product.title}</h3>
+    <p>${product.description}</p>
+    <p>Precio: $${product.price}</p>
+    <img src="/imagenes/${product.thumbnail}" alt="${product.title}" />
+  `;
+  container.appendChild(card);
+}
+
+function removeProductCard(id) {
+  const card = document.getElementById(`product-${id}`);
+  if (card) card.remove();
+}
+
+function updateProductCard(product) {
+  const card = document.getElementById(`product-${product.id}`);
+  if (card) {
     card.innerHTML = `
-      <img src="/imagenes/${prod.thumbnail}" class="card-img-top" alt="${prod.title}" />
-      <div class="card-body text-dark">
-        <h5 class="card-title">${prod.title}</h5>
-        <p class="card-text">$${prod.price}</p>
-        <button class="btn btn-danger btn-sm deleteBtn" data-id="${prod.id}">Eliminar</button>
-      </div>
+      <h3>${product.title}</h3>
+      <p>${product.description}</p>
+      <p>Precio: $${product.price}</p>
+      <img src="/imagenes/${product.thumbnail}" alt="${product.title}" />
     `;
-    contenedor.appendChild(card);
-  });
-
-  // Botones eliminar
-  document.querySelectorAll(".deleteBtn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
-      socket.emit("eliminarProducto", id);
-    });
-  });
-});
-
-// Manejo del formulario para agregar productos con imagen
-const form = document.getElementById("productForm");
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(form);
-
-  // Enviamos el producto al endpoint REST (incluye imagen)
-  const response = await fetch("/api/products", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (response.ok) {
-    const nuevoProducto = await response.json();
-    // Avisamos al servidor vía socket para actualizar todos los clientes
-    socket.emit("nuevoProducto", nuevoProducto);
   }
-
-  form.reset();
-});
+}
