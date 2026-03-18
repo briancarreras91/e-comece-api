@@ -61,22 +61,29 @@ router.post("/checkout/:cid/confirm", async (req, res) => {
       });
     }
 
-    // Calcular total y descontar stock
+    // Calcular total y descontar stock al confirmar
     let total = 0;
     for (const item of cart.products) {
       total += item.product.price * item.quantity;
 
-      // Descontar stock
       const product = await Product.findById(item.product._id);
       if (product) {
-        product.stock = Math.max(product.stock - item.quantity, 0);
+        if (item.quantity > product.stock) {
+          return res.render("checkout", {
+            layout: "main",
+            products: cart.products,
+            total,
+            error: `Stock insuficiente para ${product.title}`,
+          });
+        }
+        product.stock -= item.quantity;
         await product.save();
       }
     }
 
     const orderId = `ORD-${Date.now()}`;
 
-    // Vaciar carrito
+    // Vaciar carrito después de confirmar
     cart.products = [];
     await cart.save();
 
@@ -86,7 +93,7 @@ router.post("/checkout/:cid/confirm", async (req, res) => {
       total,
       orderId,
       message: "¡Gracias por su compra!",
-      logo: "/assets/imagenes/Logo.png", // logo institucional
+      logo: "/src/assets/imagenes/Logo.png", // logo institucional
     });
   } catch (error) {
     console.error("Error al confirmar compra:", error);

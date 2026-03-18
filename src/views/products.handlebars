@@ -5,11 +5,14 @@
     <div class="row">
       {{#each payload}}
         <div class="col-md-4 mb-4">
-          <div class="card h-100">
+          <div class="card h-100 d-flex flex-column">
             {{#if this.thumbnail}}
-              <img src="{{this.thumbnail}}" class="card-img-top" alt="{{this.title}}" />
+              <img src="{{this.thumbnail}}" 
+                   class="card-img-top img-fluid" 
+                   style="max-height:200px; object-fit:cover;" 
+                   alt="{{this.title}}" />
             {{/if}}
-            <div class="card-body">
+            <div class="card-body flex-grow-1">
               <h5 class="card-title">{{this.title}}</h5>
               <p class="card-text">{{this.description}}</p>
               <p><strong>Precio:</strong> ${{this.price}}</p>
@@ -17,8 +20,15 @@
               <p><strong>Categoría:</strong> {{this.category}}</p>
             </div>
             <div class="card-footer text-center">
-              <!-- Botón para agregar al carrito -->
-              <form action="/api/carts/{{../cartId}}/products/{{this._id}}" method="POST">
+              <!-- Formulario para agregar al carrito con cantidad -->
+              <form action="/api/carts/{{../cartId}}/products/{{this._id}}" method="POST" class="d-flex justify-content-center align-items-center gap-2">
+                <input type="number" 
+                       name="quantity" 
+                       value="1" 
+                       min="1" 
+                       max="{{this.stock}}" 
+                       class="form-control form-control-sm" 
+                       style="width:80px;" />
                 <button type="submit" class="btn btn-success btn-sm">Agregar al carrito</button>
               </form>
             </div>
