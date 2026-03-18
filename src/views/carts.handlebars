@@ -1,0 +1,48 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Carrito de Compras</h2>
+
+  {{#if products.length}}
+    <div class="mb-3">
+      <p><strong>Total de productos:</strong> {{count}}</p>
+      <p><strong>Total a pagar:</strong> ${{total}}</p>
+    </div>
+
+    <!-- Botones globales -->
+    <div class="mb-4 d-flex gap-2">
+      <!-- Vaciar carrito -->
+      <form action="/api/carts/{{cartId}}/empty" method="POST">
+        <button type="submit" class="btn btn-warning">Vaciar Carrito</button>
+      </form>
+
+      <!-- Finalizar compra -->
+      <form action="/api/carts/{{cartId}}/checkout" method="POST">
+        <button type="submit" class="btn btn-success">Finalizar Compra</button>
+      </form>
+    </div>
+
+    <div class="row">
+      {{#each products}}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            {{#if this.product.thumbnail}}
+              <img src="{{this.product.thumbnail}}" class="card-img-top" alt="{{this.product.title}}" />
+            {{/if}}
+            <div class="card-body">
+              <h5 class="card-title">{{this.product.title}}</h5>
+              <p class="card-text">{{this.product.description}}</p>
+              <p><strong>Precio:</strong> ${{this.product.price}}</p>
+              <p><strong>Cantidad:</strong> {{this.quantity}}</p>
+            </div>
+            <div class="card-footer text-center">
+              <form action="/api/carts/{{../cartId}}/products/{{this.product._id}}/delete" method="POST">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="alert alert-info">Carrito vacío</div>
+  {{/if}}
+</div>

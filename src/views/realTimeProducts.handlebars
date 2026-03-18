@@ -1,89 +1,213 @@
-<h1 class="mb-4">Productos en tiempo real</h1>
+<div class="container mt-4">
+  <h2 class="mb-4">Gestión de Productos</h2>
 
-<form id="productForm" class="mb-4" enctype="multipart/form-data">
-  <div class="row g-2">
-    <div class="col-md-4">
-      <input
-        type="text"
-        name="title"
-        class="form-control"
-        placeholder="Título"
-        required
-      />
+  {{! Mostrar error si existe }}
+  {{#if error}}
+    <div class="alert alert-danger">
+      {{error}}
     </div>
-    <div class="col-md-4">
-      <input
-        type="text"
-        name="description"
-        class="form-control"
-        placeholder="Descripción"
-        required
-      />
-    </div>
-    <div class="col-md-4">
-      <input
-        type="text"
-        name="code"
-        class="form-control"
-        placeholder="Código"
-        required
-      />
-    </div>
-    <div class="col-md-4">
-      <input
-        type="number"
-        name="price"
-        class="form-control"
-        placeholder="Precio"
-        required
-      />
-    </div>
-    <div class="col-md-4">
-      <input
-        type="number"
-        name="stock"
-        class="form-control"
-        placeholder="Stock"
-        required
-      />
-    </div>
-    <div class="col-md-4">
-      <input
-        type="text"
-        name="category"
-        class="form-control"
-        placeholder="Categoría"
-        required
-      />
-    </div>
-    <div class="col-md-6">
-      <input type="file" name="thumbnail" class="form-control" required />
-    </div>
-    <div class="col-md-6">
-      <button type="submit" class="btn btn-primary w-100">Agregar producto</button>
+  {{/if}}
+
+  {{! Formulario para agregar producto con subida de imagen }}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Agregar nuevo producto</h5>
+      <form action="/api/products" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="title" class="form-label">Título</label>
+          <input
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Descripción</label>
+          <textarea
+            class="form-control"
+            id="description"
+            name="description"
+            required
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="code" class="form-label">Código</label>
+          <input
+            type="text"
+            class="form-control"
+            id="code"
+            name="code"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="price" class="form-label">Precio</label>
+          <input
+            type="number"
+            class="form-control"
+            id="price"
+            name="price"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="stock" class="form-label">Stock</label>
+          <input
+            type="number"
+            class="form-control"
+            id="stock"
+            name="stock"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="category" class="form-label">Categoría</label>
+          <input
+            type="text"
+            class="form-control"
+            id="category"
+            name="category"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="thumbnail" class="form-label">Imagen (JPG o PNG, máx 20
+            MB)</label>
+          <input
+            type="file"
+            class="form-control"
+            id="thumbnail"
+            name="thumbnail"
+            accept=".jpg,.jpeg,.png"
+          />
+        </div>
+        <button type="submit" class="btn btn-success">Agregar producto</button>
+      </form>
     </div>
   </div>
-</form>
 
-<div id="productList" class="productos">
-  {{#each products}}
-    <div class="card h-100">
-      <img
-        src="/imagenes/{{this.thumbnail}}"
-        class="card-img-top"
-        alt="{{this.title}}"
-      />
-      <div class="card-body text-dark">
-        <h5 class="card-title">{{this.title}}</h5>
-        <p class="card-text">${{this.price}}</p>
-        <button
-          class="btn btn-danger btn-sm deleteBtn"
-          data-id="{{this.id}}"
-        >Eliminar</button>
-      </div>
-    </div>
-  {{/each}}
+  {{! Lista de productos existentes }}
+  <div id="productsList" class="row">
+    {{#if payload.length}}
+      {{#each payload}}
+        <div class="col-md-4 mb-4 product-card">
+          <div class="card h-100">
+            {{#if this.thumbnail}}
+              <img
+                src="{{this.thumbnail}}"
+                class="card-img-top"
+                alt="{{this.title}}"
+              />
+            {{/if}}
+            <div class="card-body">
+              <h5 class="card-title">{{this.title}}</h5>
+              <p class="card-text">{{this.description}}</p>
+              <p><strong>Código:</strong> {{this.code}}</p>
+              <p><strong>Precio:</strong> ${{this.price}}</p>
+              <p><strong>Stock:</strong> {{this.stock}}</p>
+              <p><strong>Categoría:</strong> {{this.category}}</p>
+
+              <div class="d-flex justify-content-between">
+                {{! Botón eliminar }}
+                <form action="/api/products/{{this._id}}/delete" method="POST">
+                  <button
+                    type="submit"
+                    class="btn btn-danger btn-sm"
+                  >Eliminar</button>
+                </form>
+
+                {{! Botón editar }}
+                <button
+                  class="btn btn-warning btn-sm"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#editForm-{{this._id}}"
+                >
+                  Editar
+                </button>
+              </div>
+
+              {{! Formulario de edición inline }}
+              <div class="collapse mt-3" id="editForm-{{this._id}}">
+                <form
+                  action="/api/products/{{this._id}}/edit"
+                  method="POST"
+                  enctype="multipart/form-data"
+                >
+                  <div class="mb-2">
+                    <label class="form-label">Título</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="title"
+                      value="{{this.title}}"
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Descripción</label>
+                    <textarea
+                      class="form-control"
+                      name="description"
+                    >{{this.description}}</textarea>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Código</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="code"
+                      value="{{this.code}}"
+                      required
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Precio</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="price"
+                      value="{{this.price}}"
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Stock</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="stock"
+                      value="{{this.stock}}"
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Categoría</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="category"
+                      value="{{this.category}}"
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Imagen nueva (JPG o PNG, máx 20
+                      MB)</label>
+                    <input
+                      type="file"
+                      class="form-control"
+                      name="thumbnail"
+                      accept=".jpg,.jpeg,.png"
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-sm">Guardar
+                    cambios</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <div class="alert alert-info">No hay productos disponibles</div>
+    {{/if}}
+  </div>
 </div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/socket.js"></script>

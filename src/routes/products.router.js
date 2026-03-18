@@ -1,131 +1,170 @@
 const { Router } = require("express");
-const Product = require("../models/Product"); // Modelo de Mongoose
-const uploadCloud = require("../middlewares/cloudinaryConfig"); // configuración de Cloudinary
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const Product = require("../models/Product");
+const Cart = require("../models/Cart"); // <-- agregado
 
 const router = Router();
 
-// Home: muestra productos en catálogo normal (desde MongoDB)
-router.get("/", async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.render("home", { products });
-  } catch (error) {
-    res.status(500).json({ error: "Error al cargar productos" });
-  }
+// Configuración Multer con filtros y límite de tamaño
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../assets/imagenes"));
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
 
-// Vista realtime: muestra productos y formulario
-router.get("/realtimeproducts", async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.render("realTimeProducts", { products });
-  } catch (error) {
-    res.status(500).json({ error: "Error al cargar productos" });
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png"];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Solo se permiten imágenes JPG y PNG"), false);
   }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
 });
 
-// API REST: obtener productos con paginación, filtros y ordenamiento
-router.get("/api/products", async (req, res) => {
+// Catálogo de productos
+router.get("/products", async (req, res) => {
   try {
-    const { page = 1, limit = 10, sort, category, status } = req.query;
-
-    // Filtros dinámicos
-    const query = {};
-    if (category) query.category = category;
-    if (status) query.status = status === "true";
-
-    // Ordenamiento dinámico
-    let sortOption = {};
-    if (sort) {
-      const [field, order] = sort.split(":");
-      sortOption[field] = order === "desc" ? -1 : 1;
+    // Si no hay carrito en sesión, crear uno
+    if (!req.session.cartId) {
+      const newCart = new Cart();
+      await newCart.save();
+      req.session.cartId = newCart._id.toString();
     }
 
-    // Paginación con skip/limit
-    const products = await Product.find(query)
-      .sort(sortOption)
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-
-    const total = await Product.countDocuments(query);
-
-    res.json({
-      total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / limit),
-      products,
+    const productos = await Product.find().lean();
+    res.render("products", {
+      layout: "main",
+      payload: productos,
+      cartId: req.session.cartId, // <-- agregado
     });
   } catch (error) {
-    console.error("Error al obtener productos:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
+    console.error("Error al cargar catálogo:", error);
+    res.status(500).render("products", {
+      layout: "main",
+      payload: [],
+      error: "Error al cargar catálogo",
+    });
   }
 });
 
-// Crear producto con upload de imagen en Cloudinary
-router.post(
-  "/api/products",
-  uploadCloud.single("thumbnail"),
-  async (req, res) => {
+// Crear producto con imagen
+router.post("/api/products", (req, res, next) => {
+  upload.single("thumbnail")(req, res, async (err) => {
+    if (err) {
+      return res.status(400).render("realtimeproducts", {
+        layout: "main",
+        payload: [],
+        error: err.message,
+      });
+    }
     try {
-      const { title, description, code, price, status, stock, category } =
-        req.body;
-
-      if (!req.file) {
-        return res
-          .status(400)
-          .json({ error: "Debe subir una imagen JPG o PNG" });
-      }
-
-      if (!title || !description || !code || !price || !stock || !category) {
-        return res.status(400).json({ error: "Faltan campos obligatorios" });
-      }
+      const { title, description, price, stock, category, code } = req.body;
+      const thumbnail = req.file ? `/imagenes/${req.file.filename}` : null;
 
       const newProduct = new Product({
         title,
         description,
         code,
-        price: Number(price),
-        status: status === "true" || status === true,
-        stock: Number(stock),
+        price,
+        stock,
         category,
-        thumbnail: req.file.path, // URL pública de Cloudinary
+        thumbnail,
       });
 
       await newProduct.save();
-
-      res.status(201).json(newProduct);
+      res.redirect("/realtimeproducts");
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error("Error al crear producto:", error);
+      res.status(500).send("Error al crear producto");
     }
-  },
-);
-
-// Actualizar producto
-router.put("/api/products/:id", async (req, res) => {
-  try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!updated) {
-      return res.status(404).json({ error: "Producto no encontrado" });
-    }
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  });
 });
 
 // Eliminar producto
-router.delete("/api/products/:id", async (req, res) => {
+router.post("/api/products/:id/delete", async (req, res) => {
   try {
-    const deleted = await Product.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ error: "Producto no encontrado" });
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).send("Producto no encontrado");
     }
-    res.json({ deleted });
+
+    if (product.thumbnail && product.thumbnail.startsWith("/imagenes/")) {
+      const filePath = path.join(
+        __dirname,
+        "../assets/imagenes",
+        path.basename(product.thumbnail),
+      );
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.redirect("/realtimeproducts");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error al eliminar producto:", error);
+    res.status(500).send("Error al eliminar producto");
   }
+});
+
+// Editar producto
+router.post("/api/products/:id/edit", (req, res, next) => {
+  upload.single("thumbnail")(req, res, async (err) => {
+    if (err) {
+      return res.status(400).render("realtimeproducts", {
+        layout: "main",
+        payload: [],
+        error: err.message,
+      });
+    }
+    try {
+      const { title, description, price, stock, category, code } = req.body;
+      const product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return res.status(404).send("Producto no encontrado");
+      }
+
+      if (req.file) {
+        if (product.thumbnail && product.thumbnail.startsWith("/imagenes/")) {
+          const oldPath = path.join(
+            __dirname,
+            "../assets/imagenes",
+            path.basename(product.thumbnail),
+          );
+          if (fs.existsSync(oldPath)) {
+            fs.unlinkSync(oldPath);
+          }
+        }
+        product.thumbnail = `/imagenes/${req.file.filename}`;
+      }
+
+      product.title = title;
+      product.description = description;
+      product.code = code;
+      product.price = price;
+      product.stock = stock;
+      product.category = category;
+
+      await product.save();
+      res.redirect("/realtimeproducts");
+    } catch (error) {
+      console.error("Error al editar producto:", error);
+      res.status(500).send("Error al editar producto");
+    }
+  });
 });
 
 module.exports = router;

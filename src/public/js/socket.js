@@ -22,23 +22,28 @@ socket.on("productoActualizado", (product) => {
 
 // Funciones auxiliares para manipular el DOM
 function renderProducts(products) {
-  const container = document.getElementById("productsContainer");
+  const container = document.getElementById("productList");
   container.innerHTML = "";
   products.forEach(addProductCard);
 }
 
 function addProductCard(product) {
-  const container = document.getElementById("productsContainer");
-  const card = document.createElement("div");
-  card.id = `product-${product.id}`;
-  card.className = "product-card";
-  card.innerHTML = `
-    <h3>${product.title}</h3>
-    <p>${product.description}</p>
-    <p>Precio: $${product.price}</p>
-    <img src="/imagenes/${product.thumbnail}" alt="${product.title}" />
+  const container = document.getElementById("productList");
+  const col = document.createElement("div");
+  col.className = "col-md-4 mb-4";
+  col.id = `product-${product._id}`;
+
+  col.innerHTML = `
+    <div class="card h-100">
+      <img src="${product.thumbnail}" class="card-img-top" alt="${product.title}" />
+      <div class="card-body text-dark">
+        <h5 class="card-title">${product.title}</h5>
+        <p class="card-text">$${product.price}</p>
+        <button class="btn btn-danger btn-sm deleteBtn" data-id="${product._id}">Eliminar</button>
+      </div>
+    </div>
   `;
-  container.appendChild(card);
+  container.appendChild(col);
 }
 
 function removeProductCard(id) {
@@ -47,13 +52,17 @@ function removeProductCard(id) {
 }
 
 function updateProductCard(product) {
-  const card = document.getElementById(`product-${product.id}`);
-  if (card) {
-    card.innerHTML = `
-      <h3>${product.title}</h3>
-      <p>${product.description}</p>
-      <p>Precio: $${product.price}</p>
-      <img src="/imagenes/${product.thumbnail}" alt="${product.title}" />
+  const col = document.getElementById(`product-${product._id}`);
+  if (col) {
+    col.innerHTML = `
+      <div class="card h-100">
+        <img src="${product.thumbnail}" class="card-img-top" alt="${product.title}" />
+        <div class="card-body text-dark">
+          <h5 class="card-title">${product.title}</h5>
+          <p class="card-text">$${product.price}</p>
+          <button class="btn btn-danger btn-sm deleteBtn" data-id="${product._id}">Eliminar</button>
+        </div>
+      </div>
     `;
   }
 }
