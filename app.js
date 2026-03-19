@@ -49,14 +49,28 @@ app.use("/css", express.static(path.join(__dirname, process.env.CSS_PATH)));
 app.use("/js", express.static(path.join(__dirname, process.env.JS_PATH)));
 
 // Configuración de Handlebars con helpers
+// Configuración de Handlebars con helpers
 app.engine(
   "handlebars",
   exphbs.engine({
     helpers: {
       multiply: (a, b) => a * b,
+      eq: (a, b) => a === b,
+      gt: (a, b) => a > b,
+      lt: (a, b) => a < b,
+      add: (a, b) => a + b,
+      subtract: (a, b) => a - b,
+      range: (start, end) => {
+        const arr = [];
+        for (let i = start; i <= end; i++) {
+          arr.push(i);
+        }
+        return arr;
+      },
     },
   }),
 );
+
 app.set("views", path.join(__dirname, "src/views"));
 app.set("view engine", "handlebars");
 

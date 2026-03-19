@@ -99,6 +99,39 @@ router.post("/api/carts/:cid/products/:pid", async (req, res) => {
   }
 });
 
+// Actualizar cantidad de un producto en el carrito
+router.put("/api/carts/:cid/products/:pid", async (req, res) => {
+  try {
+    const { cid, pid } = req.params;
+    const { quantity } = req.body;
+
+    const cart = await Cart.findById(cid);
+    if (!cart) return res.status(404).json({ error: "Carrito no encontrado" });
+
+    const product = await Product.findById(pid);
+    if (!product)
+      return res.status(404).json({ error: "Producto no encontrado" });
+
+    const qty = parseInt(quantity, 10);
+    if (isNaN(qty) || qty < 1) {
+      return res.status(400).json({ error: "Cantidad inválida" });
+    }
+
+    const item = cart.products.find((p) => p.product.toString() === pid);
+    if (!item) {
+      return res.status(404).json({ error: "Producto no está en el carrito" });
+    }
+
+    item.quantity = qty;
+    await cart.save();
+
+    res.json({ status: "success", message: "Cantidad actualizada", cart });
+  } catch (error) {
+    console.error("Error al actualizar cantidad:", error);
+    res.status(500).json({ error: "Error al actualizar cantidad" });
+  }
+});
+
 // Eliminar producto del carrito
 router.post("/api/carts/:cid/products/:pid/delete", async (req, res) => {
   try {

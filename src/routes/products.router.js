@@ -3,7 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Product = require("../models/Product");
-const Cart = require("../models/Cart"); // <-- agregado
+const Cart = require("../models/Cart");
 
 const router = Router();
 
@@ -32,7 +32,7 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
 });
 
-// Catálogo de productos
+// Catálogo de productos con filtros y paginación
 router.get("/products", async (req, res) => {
   try {
     // Si no hay carrito en sesión, crear uno
@@ -42,11 +42,39 @@ router.get("/products", async (req, res) => {
       req.session.cartId = newCart._id.toString();
     }
 
-    const productos = await Product.find().lean();
+    // Filtros y orden desde query params
+    const { category, availability, sort, page = 1, limit = 10 } = req.query;
+
+    const query = {};
+    if (category) query.category = category;
+    if (availability === "true") query.stock = { $gt: 0 };
+
+    const sortOption = {};
+    if (sort === "asc") sortOption.price = 1;
+    if (sort === "desc") sortOption.price = -1;
+
+    const productos = await Product.find(query)
+      .sort(sortOption)
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await Product.countDocuments(query);
+    const totalPages = Math.ceil(total / parseInt(limit));
+
+    // Categorías dinámicas
+    const categories = await Product.distinct("category");
+
     res.render("products", {
       layout: "main",
       payload: productos,
-      cartId: req.session.cartId, // <-- agregado
+      cartId: req.session.cartId,
+      page: parseInt(page),
+      totalPages,
+      category,
+      availability,
+      sort,
+      categories, // <-- agregado
     });
   } catch (error) {
     console.error("Error al cargar catálogo:", error);
@@ -57,7 +85,6 @@ router.get("/products", async (req, res) => {
     });
   }
 });
-
 // Crear producto con imagen
 router.post("/api/products", (req, res, next) => {
   upload.single("thumbnail")(req, res, async (err) => {
@@ -118,7 +145,6 @@ router.post("/api/products/:id/delete", async (req, res) => {
     res.status(500).send("Error al eliminar producto");
   }
 });
-
 // Editar producto
 router.post("/api/products/:id/edit", (req, res, next) => {
   upload.single("thumbnail")(req, res, async (err) => {
