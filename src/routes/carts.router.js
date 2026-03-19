@@ -89,7 +89,6 @@ router.post("/api/carts/:cid/products/:pid", async (req, res) => {
       cart.products.push({ product: pid, quantity: qty });
     }
 
-    // No se descuenta stock aquí, solo en checkout
     await cart.save();
 
     res.redirect(`/carts/${cid}`);

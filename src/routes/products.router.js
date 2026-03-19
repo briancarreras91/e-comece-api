@@ -7,7 +7,7 @@ const Cart = require("../models/Cart");
 
 const router = Router();
 
-// Configuración Multer con filtros y límite de tamaño
+// Configuración Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, "../assets/imagenes"));
@@ -29,7 +29,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
 
 // Catálogo de productos con filtros y paginación
@@ -74,7 +74,7 @@ router.get("/products", async (req, res) => {
       category,
       availability,
       sort,
-      categories, // <-- agregado
+      categories,
     });
   } catch (error) {
     console.error("Error al cargar catálogo:", error);

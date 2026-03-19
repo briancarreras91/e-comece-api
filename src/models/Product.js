@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
   status: { type: Boolean, default: true },
   stock: { type: Number, required: true },
   category: { type: String, required: true },
-  thumbnail: { type: String }, // URL de Cloudinary
+  thumbnail: { type: String },
 });
 
 const Product = mongoose.model("Product", productSchema);

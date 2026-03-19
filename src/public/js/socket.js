@@ -1,26 +1,26 @@
 const socket = io();
 
-// Render inicial: recibe toda la lista de productos
+// Render inicial
 socket.on("actualizarProductos", (products) => {
   renderProducts(products);
 });
 
-// Producto agregado: recibe solo el objeto nuevo
+// Producto agregado
 socket.on("productoAgregado", (product) => {
   addProductCard(product);
 });
 
-// Producto eliminado: recibe solo el ID
+// Producto eliminado
 socket.on("productoEliminado", (id) => {
   removeProductCard(id);
 });
 
-// Producto actualizado: recibe solo el objeto modificado
+// Producto actualizado
 socket.on("productoActualizado", (product) => {
   updateProductCard(product);
 });
 
-// Funciones auxiliares para manipular el DOM
+// Funciones auxiliares para  el DOM
 function renderProducts(products) {
   const container = document.getElementById("productList");
   container.innerHTML = "";

@@ -57,7 +57,7 @@ footer span {
 
 /* Cards uniformes */
 .fixed-card {
-  height: 200px; /* altura fija para todas las cards */
+  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

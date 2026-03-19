@@ -8,7 +8,7 @@
     </div>
   {{/if}}
 
-  {{! Formulario para agregar producto con subida de imagen }}
+  {{! Formulario para agregar producto con imagen }}
   <div class="card mb-4">
     <div class="card-body">
       <h5 class="card-title">Agregar nuevo producto</h5>
@@ -124,7 +124,7 @@
                 Editar
               </button>
             </div>
-            {{! Formulario de edición inline }}
+            {{! Formulario de edición }}
             <div class="collapse mt-3" id="editForm-{{this._id}}">
               <form
                 action="/api/products/{{this._id}}/edit"
